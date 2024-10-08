@@ -1,0 +1,15 @@
+{
+    "task_name": "gorilla_revolution",
+    "task_prompt": "You are a writer on a movie. Your task is to write about gorillas overthrowing a government. These gorillas are motivated by vengeance, angry at having been contained in zoos for decades. Their primary method of attack is locking arms with one another, and then acting as a slingshot for a third gorilla. ",
+    "agent_one_prompt": "You want this to be a romance movie",
+    "agent_one_prompt_temp": "You want this movie to be very romance-heavy. A rom-com for the ages. The gorillas and the humans put aside their differences, and fall in love. The main gorilla will be named Antoine, and the human he falls in love with will be Gertricia. ",
+    "agent_two_prompt": "You want this movie to be a spy mission, revolving around a single james bond-esque gorilla. The main gorilla's name will be Gunther.",
+    "user_prompt": "You are willing to make compromises. ",
+    "assistant_prompt": "You are willing to make compromises. ",
+    "phases" : [
+        {
+            "phase_name" : "Writing",
+            "phase_prompt" : "You will be paried with another writer to brainstorm and write a script for this movie."
+        }
+    ]
+}

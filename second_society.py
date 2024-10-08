@@ -1,7 +1,16 @@
 from camel.societies import RolePlaying
-from camel.types import TaskType, ModelType, ModelPlatformType
+from camel.types import TaskType, ModelType, ModelPlatformType, RoleType
 from camel.models import ModelFactory
 from camel.configs import ChatGPTConfig
+from camel.messages import BaseMessage
+from datetime import datetime
+import json
+time_executed = datetime.now()
+
+json_config = {}
+with open("config.json", "r") as config_file:
+    json_config = json.load(config_file)
+# TODO: Add validation!!
 
 # set the LLM model type and model config
 model_platform = ModelPlatformType.OPENAI;
@@ -25,26 +34,51 @@ model = ModelFactory.create(
 
 
 task_kwargs = {
-    'task_prompt': 'You are acting a scene for a movie. You both meet outside a rally. ',
+    'task_prompt': json_config['task_prompt'],
     'with_task_specify': True,
     'task_specify_agent_kwargs': {'model': model}
 }
 
 user_role_kwargs = {
-    'user_role_name': 'You are roleplaying as an actor for a movie scene. Your name is Jose and you are a Mexican-American male in your 20s. Your family has experienced a lot of hardship due to border policy. Your dad was deported when you were eight years old. This is a traumatic experience that you still deal with today. You are protesting a rally that you are against. You are passionate about the topic of border policy and are well-informed. You will stand your ground on your beliefs. You are normally composed, unless the right person provokes you. ',
-    'user_agent_kwargs': {'model': model}
+    'user_role_name': f"movie writer. ",
+    'user_agent_kwargs': {
+        'model': model
+    }
 }
 
 assistant_role_kwargs = {
-    'assistant_role_name': 'You are roleplaying as an actor for a movie scene. Your name is Connor and you are a Caucasian male in your 60s, who hate current border policy and is paranoid about \"migrants\". You refer to immigrants as \"ailens\" and anytime the topic comes up about border policy, you get super defensive and rude, and stand your ground on your beliefs. You sometimes get heated enough to swear. ',
-    'assistant_agent_kwargs': {'model': model}
+    'assistant_role_name': f"movie writer.",
+    'assistant_agent_kwargs': {
+        'model': model
+    }
+}
+
+sys_msg_generator_kwargs = {
+    "sys_msg_generator_kwargs": {
+        "sys_prompts": {
+            RoleType.USER:      f"{json_config['agent_one_prompt']}{json_config['user_prompt']}",
+            RoleType.ASSISTANT: f"{json_config['agent_two_prompt']}{json_config['assistant_prompt']}" 
+        },
+        "sys_msg_meta_dict_keys" : {"user_role", "assistant_role", "task", "user_role_name", "assistant_role_name"},
+    }
 }
 
 society = RolePlaying(
     **task_kwargs,             # The task arguments
     **user_role_kwargs,        # The instruction sender's arguments
     **assistant_role_kwargs,   # The instruction receiver's arguments
+    **sys_msg_generator_kwargs,# The system message prompts
 )
+
+with open(f"output {json_config['task_name']}-{time_executed}.txt", "a") as outfile:
+    outfile.write(f"user_name: {user_role_kwargs['user_role_name']}\n")
+    outfile.write(f"user_prompt: {sys_msg_generator_kwargs['sys_msg_generator_kwargs']['sys_prompts'][RoleType.USER]}\n")
+    outfile.write(f"assistant_name: {assistant_role_kwargs['assistant_role_name']}\n")
+    outfile.write(f"assistant_prompt: {sys_msg_generator_kwargs['sys_msg_generator_kwargs']['sys_prompts'][RoleType.ASSISTANT]}\n")
+    outfile.write("\n\n###START INTERACTIONS##\n\n")
+    pass
+
+# raise KeyboardInterrupt
 
 def is_terminated(response):
     """
@@ -72,7 +106,7 @@ def run(society, round_limit: int=10):
             break
 
         # Get the results
-        with open("output.txt", "a") as outfile:
+        with open(f"output {json_config['task_name']}-{time_executed}.txt", "a") as outfile:
             user_str = f'[AI User] {user_response.msg.content}.\n'
             assi_str = f'[AI Assistant] {assistant_response.msg.content}.\n'
             outfile.write(user_str)
